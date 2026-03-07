@@ -45,6 +45,62 @@ python weather_bot.py
 
 This launches a Gradio chat interface in your browser. Type any weather-related question to get started.
 
+## Workflow
+
+### Diagram
+
+```mermaid
+flowchart TD
+    A([👤 User Message]) --> B[Build Message History\nsystem prompt + history + user msg]
+    B --> C[🤖 LLM Call\nGemini 2.0 Flash]
+
+    C --> D{finish_reason?}
+
+    D -- tool_calls --> E[Extract Tool Call\nname + arguments]
+    E --> F{City provided?}
+
+    F -- Yes --> G[Update last_city\nCall weather_call API]
+    F -- No --> H{last_city\nexists?}
+
+    H -- Yes --> G
+    H -- No --> I([⚠️ Ask user\nfor a city])
+
+    G --> J[OpenWeather API\nfetch weather JSON]
+    J --> K[Append tool result\nto messages]
+    K --> C
+
+    D -- stop --> L[Parse JSON response\nchatbot_response\npushover_summary]
+
+    L --> M{New city\nqueried?}
+    M -- Yes --> N[📲 Pushover\nPush Notification]
+    M -- No --> O
+    N --> O([💬 Return chatbot_response\nto Gradio UI])
+```
+
+### How It Works
+
+**1. Message Construction**
+Every time the user sends a message, the `chat()` function builds a full message list from scratch: the system prompt, an optional reminder of the last city discussed, the full conversation history, and the new user message. This gives the LLM full context on every call.
+
+**2. LLM Call**
+The message list is sent to Gemini via the OpenAI-compatible SDK. The model is given access to the `weather_call` tool and can decide on its own whether to call it.
+
+**3. Tool Call Handling**
+If the LLM responds with `finish_reason = tool_calls`, the bot extracts the function name and arguments (typically a city name). It then:
+- Updates `last_city` if a new city was mentioned
+- Falls back to `last_city` if no city was provided (enabling follow-up questions)
+- Calls `weather_call(city)` to hit the OpenWeather API
+
+The raw weather JSON is appended to the message history as a user message, and the loop sends everything back to the LLM again.
+
+**4. Final Response**
+Once the LLM responds with `finish_reason = stop`, the bot parses the JSON output — which always contains a `chatbot_response` (shown in the UI) and a `pushover_summary` (sent as a push notification if the city is new).
+
+**5. Push Notification**
+The `push()` function fires only when a new city is introduced, avoiding duplicate notifications for follow-up questions about the same location.
+
+---
+
 ## Example Queries
 
 - *"What's the weather like in Tokyo?"*
