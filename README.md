@@ -51,30 +51,30 @@ This launches a Gradio chat interface in your browser. Type any weather-related 
 
 ```mermaid
 flowchart TD
-    A([👤 User Message]) --> B[Build Message History system prompt + history + user msg]
-    B --> C[🤖 LLM Call Gemini 2.0 Flash]
+    A([👤 User Message]) --> B["Build Message History<br/>system prompt + history + user msg"]
+    B --> C["🤖 LLM Call<br/>Gemini 2.0 Flash"]
 
     C --> D{finish_reason?}
 
-    D -- tool_calls --> E[Extract Tool Call name + arguments]
+    D -- tool_calls --> E["Extract Tool Call<br/>name + arguments"]
     E --> F{City provided?}
 
-    F -- Yes --> G[Update last_city -> Call weather_call API]
-    F -- No --> H{last_city exists?}
+    F -- Yes --> G["Update last_city<br/>Call weather_call API"]
+    F -- No --> H{"last_city<br/>exists?"}
 
     H -- Yes --> G
-    H -- No --> I([⚠️ Ask user for a city])
+    H -- No --> I([" ⚠️ Ask user for a city"])
 
-    G --> J[OpenWeather API fetch weather JSON]
-    J --> K[Append tool result to messages]
+    G --> J["OpenWeather API<br/>fetch weather JSON"]
+    J --> K["Append tool result<br/>to messages"]
     K --> C
 
-    D -- stop --> L[Parse JSON response chatbot_response pushover_summary]
+    D -- stop --> L["Parse JSON response<br/>chatbot_response<br/>pushover_summary"]
 
-    L --> M{New city queried?}
-    M -- Yes --> N[📲 Pushover Push Notification]
+    L --> M{"New city<br/>queried?"}
+    M -- Yes --> N["📲 Pushover<br/>Push Notification"]
     M -- No --> O
-    N --> O([💬 Return chatbot_response to Gradio UI])
+    N --> O([" 💬 Return chatbot_response to Gradio UI"])
 ```
 
 ### How It Works
