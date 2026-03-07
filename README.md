@@ -54,7 +54,7 @@ flowchart TD
     A([👤 User Message]) --> B["Build Message History<br/>system prompt + history + user msg"]
     B --> C["🤖 LLM Call<br/>Gemini 2.0 Flash"]
 
-    C --> D{finish_reason?}
+    C --> D{Tool-Call?}
 
     D -- tool_calls --> E["Extract Tool Call<br/>name + arguments"]
     E --> F{City provided?}
